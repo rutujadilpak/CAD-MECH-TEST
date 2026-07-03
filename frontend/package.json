@@ -2,6 +2,7 @@
   "name": "cadmech-equipment-manager",
   "private": true,
   "version": "1.0.0",
+  "homepage": "https://rutujadilpak.github.io/CAD-MECH-TEST",
   "type": "module",
   "description": "SmartLab Equipment Manager - CADMech Assessment Frontend",
   "scripts": {
@@ -17,7 +18,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.0",
-    "gh-pages": "^6.3.0"
+    "gh-pages": "^6.3.0",
+    "vite": "^6.0.0"
   }
 }

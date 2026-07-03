@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/cadmech-fullstack-assessment/' : '/',
+
+  // Base path for GitHub Pages deployment
+  base: process.env.NODE_ENV === 'production' ? '/CAD-MECH-TEST/' : '/',
+
   server: {
     port: 5173,
     proxy: {
