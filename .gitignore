@@ -2,10 +2,13 @@
 node_modules/
 package-lock.json
 
-# Environment variables
-.env
+# Environment variables (backend secrets)
+backend/.env
+backend/.env.local
 .env.local
-.env.production
+
+# Frontend env files with secrets
+frontend/.env.local
 
 # Build output
 dist/

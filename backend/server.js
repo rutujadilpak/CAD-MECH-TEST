@@ -1,48 +1,22 @@
-/**
- * SmartLab Equipment Manager — Backend API Server
- * CADMech Full Stack Assessment
- *
- * This is your starting point for the backend.
- *
- * TODO:
- * 1. Set up your database connection (MySQL / PostgreSQL / SQLite)
- * 2. Implement the API endpoints in routes/api.js
- * 3. Add proper error handling
- * 4. Add input validation
- *
- * Endpoints to implement:
- *   GET    /api/equipment      — List all equipment (with search/filter)
- *   GET    /api/equipment/:id  — Get single equipment
- *   POST   /api/equipment      — Create new equipment
- *   PUT    /api/equipment/:id  — Update equipment
- *   DELETE /api/equipment/:id  — Delete equipment
- *   GET    /api/stats          — Dashboard statistics
- */
-
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
 const apiRoutes = require('./routes/api');
+const initDatabase = require('./db/init');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ─── Middleware ─────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Request Logging (simple) ──────────────────────────────
 app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} | ${req.method} ${req.path}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// ─── Routes ────────────────────────────────────────────────
-app.use('/api', apiRoutes);
-
-// ─── Health Check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -51,7 +25,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ─── 404 Handler ───────────────────────────────────────────
+app.use('/api', apiRoutes);
+
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -59,24 +34,38 @@ app.use((req, res) => {
   });
 });
 
-// ─── Error Handler ─────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('Server Error:', err.message);
+  console.error('[Server Error]', err.message);
   res.status(500).json({
     error: 'Internal Server Error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
   });
 });
 
-// ─── Start Server ──────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`
-  ╔════════════════════════════════════════════════╗
-  ║  🏭 CADMech Equipment Manager API             ║
-  ║  Server running on http://localhost:${PORT}       ║
-  ║  Health: http://localhost:${PORT}/api/health      ║
-  ╚════════════════════════════════════════════════╝
-  `);
-});
+async function start() {
+  try {
+    await initDatabase();
+
+    const server = app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`[Startup] Port ${PORT} is already in use.`);
+        console.error('[Startup] Stop the existing server first, or set a different PORT in .env');
+        process.exit(1);
+      }
+      console.error('[Startup] Server error:', err.message);
+      process.exit(1);
+    });
+  } catch (err) {
+    console.error('[Startup] Failed to initialize:', err.message);
+    process.exit(1);
+  }
+}
+
+start();
 
 module.exports = app;

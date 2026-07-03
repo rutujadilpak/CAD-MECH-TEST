@@ -1,98 +1,215 @@
-import { useState } from 'react'
-import './App.css'
+import { useState, useEffect, useCallback } from 'react';
+import './App.css';
 
-/**
- * SmartLab Equipment Manager — CADMech Assessment
- *
- * TODO: Build your solution here!
- *
- * Required Features:
- * 1. Dashboard with summary statistics
- * 2. Equipment list (table/grid view)
- * 3. Add new equipment (form)
- * 4. Edit equipment
- * 5. Delete equipment (with confirmation)
- * 6. Search & Filter (by name, type, status)
- * 7. Responsive design
- *
- * API Base URL (development): http://localhost:5000/api
- * API Base URL (production):  Replace with your deployed backend URL
- *
- * Hints:
- * - Create separate components in the /components folder
- * - Use fetch() or axios to communicate with the backend
- * - Consider using React Router for navigation (optional)
- * - Add loading states while fetching data
- */
+import Dashboard from './components/Dashboard';
+import EquipmentList from './components/EquipmentList';
+import EquipmentForm from './components/EquipmentForm';
+import SearchFilter from './components/SearchFilter';
+import ConfirmDialog from './components/ConfirmDialog';
+import Loader from './components/Loader';
+import Toast from './components/Toast';
 
-// TODO: Update this to your deployed backend URL before deploying frontend
-const API_BASE = '/api'
+import {
+  fetchStats,
+  fetchEquipment,
+  createEquipment,
+  updateEquipment,
+  deleteEquipment,
+} from './services/api';
 
 function App() {
+  const [equipment, setEquipment] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  function showToast(message, type = 'success') {
+    setToast({ message, type });
+  }
+
+  const loadStats = useCallback(async () => {
+    try {
+      const s = await fetchStats();
+      setStats(s);
+    } catch {
+      // stats are non-critical; silently ignore
+    }
+  }, []);
+
+  const loadEquipment = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchEquipment({ search, type: filterType, status: filterStatus });
+      setEquipment(data);
+    } catch (err) {
+      showToast(err.message || 'Failed to load equipment', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [search, filterType, filterStatus]);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      loadEquipment();
+    }, 300);
+    return () => clearTimeout(debounce);
+  }, [loadEquipment]);
+
+  function handleOpenAdd() {
+    setEditingItem(null);
+    setFormOpen(true);
+  }
+
+  function handleOpenEdit(item) {
+    setEditingItem(item);
+    setFormOpen(true);
+  }
+
+  function handleCloseForm() {
+    setFormOpen(false);
+    setEditingItem(null);
+  }
+
+  async function handleFormSubmit(payload) {
+    setIsSaving(true);
+    try {
+      if (editingItem) {
+        await updateEquipment(editingItem.id, payload);
+        showToast('Equipment updated successfully');
+      } else {
+        await createEquipment(payload);
+        showToast('Equipment added successfully');
+      }
+      handleCloseForm();
+      await loadStats();
+      await loadEquipment();
+    } catch (err) {
+      showToast(err.message || 'Save failed', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function handleDeletePrompt(item) {
+    setDeletingItem(item);
+  }
+
+  function handleCancelDelete() {
+    setDeletingItem(null);
+  }
+
+  async function handleConfirmDelete() {
+    setIsDeleting(true);
+    try {
+      await deleteEquipment(deletingItem.id);
+      showToast(`"${deletingItem.name}" deleted successfully`);
+      setDeletingItem(null);
+      await loadStats();
+      await loadEquipment();
+    } catch (err) {
+      showToast(err.message || 'Delete failed', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  function handleClearFilters() {
+    setSearch('');
+    setFilterType('');
+    setFilterStatus('');
+  }
+
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1>🏭 SmartLab Equipment Manager</h1>
-          <p className="subtitle">Cadmech Engineering Pvt. Ltd.</p>
+          <div className="header-brand">
+            <span className="header-logo">⚙️</span>
+            <div>
+              <h1 className="header-title">SmartLab Equipment Manager</h1>
+              <p className="header-subtitle">Cadmech Engineering Pvt. Ltd.</p>
+            </div>
+          </div>
+          <button className="btn btn-primary btn-add" onClick={handleOpenAdd}>
+            + Add Equipment
+          </button>
         </div>
       </header>
 
       <main className="app-main">
-        <section className="welcome-section">
-          <div className="welcome-card">
-            <h2>👋 Welcome, Developer!</h2>
-            <p>
-              This is your starting point. Replace this content with your
-              SmartLab Equipment Manager implementation.
-            </p>
+        <Dashboard stats={stats} />
 
-            <div className="checklist">
-              <h3>📋 Feature Checklist</h3>
-              <ul>
-                <li>⬜ Dashboard with summary stats</li>
-                <li>⬜ Equipment list view</li>
-                <li>⬜ Add new equipment</li>
-                <li>⬜ Edit equipment</li>
-                <li>⬜ Delete equipment</li>
-                <li>⬜ Search &amp; Filter</li>
-                <li>⬜ Responsive design</li>
-              </ul>
-            </div>
-
-            <div className="api-status">
-              <h3>🔌 Backend API Status</h3>
-              <p>
-                Make sure your backend is running at{' '}
-                <code>http://localhost:5000</code>
-              </p>
-              <button
-                className="check-btn"
-                onClick={async () => {
-                  try {
-                    const res = await fetch(`${API_BASE}/health`)
-                    const data = await res.json()
-                    alert(`✅ Backend is running! Status: ${data.status}`)
-                  } catch (err) {
-                    alert('❌ Backend is not reachable. Make sure it is running on port 5000.')
-                  }
-                }}
-              >
-                Check Backend Connection
-              </button>
-            </div>
+        <section className="equipment-section">
+          <div className="section-header">
+            <h2 className="section-title">Equipment Registry</h2>
+            <span className="equipment-count">{equipment.length} item{equipment.length !== 1 ? 's' : ''}</span>
           </div>
+
+          <SearchFilter
+            search={search}
+            type={filterType}
+            status={filterStatus}
+            onSearchChange={setSearch}
+            onTypeChange={setFilterType}
+            onStatusChange={setFilterStatus}
+            onClear={handleClearFilters}
+          />
+
+          {isLoading ? (
+            <Loader message="Loading equipment…" />
+          ) : (
+            <EquipmentList
+              equipment={equipment}
+              onEdit={handleOpenEdit}
+              onDelete={handleDeletePrompt}
+            />
+          )}
         </section>
       </main>
 
       <footer className="app-footer">
-        <p>
-          CADMech Full Stack Assessment &copy; {new Date().getFullYear()} —
-          Cadmech Engineering Pvt. Ltd.
-        </p>
+        <p>CADMech Full Stack Assessment &copy; {new Date().getFullYear()} — Cadmech Engineering Pvt. Ltd.</p>
       </footer>
+
+      {formOpen && (
+        <EquipmentForm
+          initial={editingItem}
+          onSubmit={handleFormSubmit}
+          onClose={handleCloseForm}
+          loading={isSaving}
+        />
+      )}
+
+      {deletingItem && (
+        <ConfirmDialog
+          item={deletingItem}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          loading={isDeleting}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

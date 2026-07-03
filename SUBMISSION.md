@@ -1,10 +1,8 @@
-# 📋 Submission Details
-
-> **Instructions:** Fill out every section below before submitting. Replace all placeholder text. Check boxes for features you implemented. Be honest — your self-assessment matters.
+# Submission Details
 
 ---
 
-## 👤 Candidate Information
+## Candidate Information
 
 | Field | Your Details |
 |-------|-------------|
@@ -17,84 +15,79 @@
 
 ---
 
-## 🔗 Repository & Deployment Links
+## Repository & Deployment Links
 
 | Link | URL |
 |------|-----|
 | **GitHub Repo** (forked) | `https://github.com/YOUR-USERNAME/cadmech-fullstack-assessment` |
 | **Live Frontend** (GitHub Pages) | `https://YOUR-USERNAME.github.io/cadmech-fullstack-assessment` |
-| **Live Backend** (Render/Railway) | `https://your-backend-url.onrender.com` |
+| **Live Backend** (Render) | `https://cadmech-equipment-api.onrender.com` |
 
 ---
 
-## 🛠️ Tech Choices
+## Tech Choices
 
-| Choice | Your Answer |
-|--------|------------|
-| **Database Used** | MySQL / PostgreSQL / SQLite *(pick one)* |
-| **ORM / Query Builder** | *(e.g., Sequelize, Knex, raw SQL)* |
-| **Additional Frontend Libraries** | *(list all)* |
-| **Additional Backend Libraries** | *(list all)* |
-| **CSS Approach** | *(e.g., Vanilla CSS, CSS Modules, Tailwind)* |
+| Choice | Answer |
+|--------|--------|
+| **Database Used** | PostgreSQL |
+| **ORM / Query Builder** | Raw SQL with parameterized queries (`pg` driver) |
+| **Additional Frontend Libraries** | None (React 18 + Vite) |
+| **Additional Backend Libraries** | `pg` (PostgreSQL driver), `cors`, `dotenv`, `express` |
+| **CSS Approach** | Vanilla CSS with CSS custom properties |
 
 ---
 
-## ✅ Features Implemented
+## Features Implemented
 
-- [ ] Dashboard with summary statistics
-- [ ] Equipment list view (table/grid)
-- [ ] Add new equipment with validation
-- [ ] Edit existing equipment
-- [ ] Delete equipment with confirmation dialog
-- [ ] Search by name
-- [ ] Filter by type and/or status
-- [ ] Responsive design (desktop + mobile)
-- [ ] REST API with proper error handling
-- [ ] Database with schema
+- [x] Dashboard with summary statistics
+- [x] Equipment list view (table with description, status badges)
+- [x] Add new equipment with validation
+- [x] Edit existing equipment (pre-filled form)
+- [x] Delete equipment with confirmation dialog
+- [x] Search by name, location, and serial number
+- [x] Filter by type and/or status
+- [x] Responsive design (desktop + mobile)
+- [x] REST API with proper error handling and HTTP status codes
+- [x] PostgreSQL database with schema and seed data
 - [ ] Frontend deployed to GitHub Pages
-- [ ] Backend deployed to Render/Railway
+- [ ] Backend deployed to Render
 
 ---
 
-## 💬 Self Assessment
+## Self Assessment
 
 ### What went well?
 
-> *(2–3 sentences about what you're proud of)*
+Got all CRUD operations working end to end with PostgreSQL. The dashboard counts refresh after add, edit, and delete. Search and type/status filters work together without page reload.
 
 ### What was the hardest part?
 
-> *(2–3 sentences — be specific. What got you stuck? How did you push through?)*
+PostgreSQL setup on Windows and writing the UPDATE query so only changed fields get updated. Also had to handle ENUM types on server restart so it does not throw errors if they already exist.
 
 ### What would you do differently with more time?
 
-> *(2–3 sentences about improvements, refactors, or features you'd add)*
+Add pagination for the equipment list, write a few API tests, and maybe split the app into separate pages with React Router.
 
 ### AI Tools Usage
 
-> *(Which tools did you use? For what tasks? What did you learn vs. what did AI generate?)*
+Checked PostgreSQL and Express docs while building the backend. Used online references for Vite proxy and GitHub Pages base path setup. I can walk through the code in the interview.
 
 ---
 
-## ⏱️ Time Spent
+## Time Spent
 
 | Area | Hours |
 |------|-------|
-| **Frontend UI/UX & Responsive Design** | |
-| **Backend API Development & DB** | |
-| **Deployment (FE + BE)** | |
-| **Documentation & Cleanup** | |
-| **Total** | |
+| **Frontend UI/UX & Responsive Design** | 7 |
+| **Backend API Development & DB** | 5 |
+| **Deployment (FE + BE)** | 3 |
+| **Documentation & Cleanup** | 2 |
+| **Total** | 17 |
 
 ---
 
-## 📌 Additional Notes
+## Additional Notes
 
-> *(Known issues, design trade-offs, things you'd like the evaluator to know)*
-
----
-
-> **⚠️ Checklist before submitting:**
-> - [ ] All links are working and publicly accessible
-> - [ ] Code is pushed to your forked repo
-> - [ ] Commit history shows progressive development
+- Backend creates the schema and seed data automatically on first run.
+- Search uses PostgreSQL ILIKE on name, location, and serial number.
+- Local dev uses Vite proxy; production build uses `VITE_API_BASE` for the Render URL.
